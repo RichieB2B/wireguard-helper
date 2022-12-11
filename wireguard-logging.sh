@@ -42,6 +42,7 @@ echo "`date` Message: $message $durationMsg"
 # Script Logic Begin
 
 mkdir -p /var/log/wireguard/
+chmod 700 /var/log/wireguard
 echo "`date` -- Wireguard Logging Service Started" >> /var/log/wireguard/wireguard-service.log
 while [ 1 ]
 do
@@ -88,11 +89,11 @@ do
                 fi
 
                 duration=$((hour_seconds + minute_seconds + second_seconds))
-                user=`grep -rl ${peer} /etc/wireguard/clients/ | awk -F'/' {'print $5'}`
+                user=`grep -B 1 ${peer} /etc/wireguard/wg0.conf | head -1 | sed -e 's/#\s*//'`
                 #echo "User: $user , Duration: $duration, Peer: $peer, IP: $endpoint, Threshold: $threshold"
                 if [ $duration -le $threshold ];then
                         touch ${connection_info_file} ${log_file}
-                        grep -i $user[[:space:]] ${connection_info_file} >> /dev/null
+                        grep -i "$user" ${connection_info_file} >> /dev/null
                         if [ $? -ne 0 ];then
                                 echo "`date` - $user connected" >> ${connection_info_file}
                                 echo "`date` - User $user connected from $endpoint $durationMessage" >> ${log_file}
@@ -103,7 +104,7 @@ do
                         fi
                 elif [ $duration -gt $threshold ];then
                         touch ${connection_info_file} ${log_file}
-                        grep -i $user[[:space:]] ${connection_info_file} >> /dev/null
+                        grep -i "$user" ${connection_info_file} >> /dev/null
                         if [ $? -eq 0 ];then
                                 sed -i "/$user/d" ${connection_info_file}
                                 echo "`date` - User $user $endpoint  disconnected $durationMessage" >> ${log_file}
