@@ -130,7 +130,7 @@ do
                         grep -i "$user" ${connection_info_file} >> /dev/null
                         if [ $? -eq 0 ];then
                                 sed -i "/$user/d" ${connection_info_file}
-                                echo "`date` - User $user $endpoint  disconnected $durationMessage" >> ${log_file}
+                                echo "`date` - User $user $endpoint disconnected $durationMessage" >> ${log_file}
                                 if [ "$notify_by_email" == "yes" ];then
                                        notify_email "$user" "$endpoint" "$durationMessage" "Disconnected"
                                 fi
