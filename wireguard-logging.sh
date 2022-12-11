@@ -10,11 +10,14 @@ connection_info_file=/var/log/wireguard/connected_clients.info
 log_file=/var/log/wireguard/wireguard.log
 notification_email=YOUR_EMAIL
 notify_by_email=yes
+pushover_token=YOUR_TOKEN
+pushover_user=YOUR_USER
+notify_by_pushover=yes
 #Configuration End
 
 # Functions Declarations
 
-function notify()
+function notify_email()
 {
   user=$1
   endpoint=$2
@@ -33,8 +36,27 @@ function notify()
                 echo "Server: `uname -a`"
         } | mail -s "Wireguard Alert: $user $msgType from $endpoint on `hostname -s`" ${notification_email}
 
-echo "`date` Message: $message $durationMsg"
+echo "`date` $message $durationMsg"
 
+}
+
+function notify_pushover()
+{
+  user=$1
+  endpoint=$2
+  durationMsg=$3
+  msgType=$4
+
+
+  title="$msgType: $user from $endpoint"
+  message="on `hostname -s` $durationMsg on `date`"
+  curl -s \
+       --form-string "token=${pushover_token}" \
+       --form-string "user=${pushover_user}" \
+       --form-string "title=${title}" \
+       --form-string "message=${message}" \
+       --form-string "sound=spacealarm" \
+       https://api.pushover.net/1/messages.json
 }
 
 # Functions End
@@ -98,7 +120,10 @@ do
                                 echo "`date` - $user connected" >> ${connection_info_file}
                                 echo "`date` - User $user connected from $endpoint $durationMessage" >> ${log_file}
 				if [ "$notify_by_email" == "yes" ];then
-                                	notify "$user" "$endpoint" "$durationMessage" "Connected"
+                                       notify_email "$user" "$endpoint" "$durationMessage" "Connected"
+				fi
+				if [ "$notify_by_pushover" == "yes" ];then
+                                       notify_pushover "$user" "$endpoint" "$durationMessage" "Connected"
 				fi
 
                         fi
@@ -109,7 +134,10 @@ do
                                 sed -i "/$user/d" ${connection_info_file}
                                 echo "`date` - User $user $endpoint  disconnected $durationMessage" >> ${log_file}
                                 if [ "$notify_by_email" == "yes" ];then
-                                	notify "$user" "$endpoint" "$durationMessage" "Disconnected"
+                                       notify_email "$user" "$endpoint" "$durationMessage" "Disconnected"
+                                fi
+                                if [ "$notify_by_pushover" == "yes" ];then
+                                       notify_pushover "$user" "$endpoint" "$durationMessage" "Disconnected"
                                 fi
 
                         fi
