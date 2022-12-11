@@ -35,9 +35,6 @@ function notify_email()
                 echo "Hostname: `hostname -f`"
                 echo "Server: `uname -a`"
         } | mail -s "Wireguard Alert: $user $msgType from $endpoint on `hostname -s`" ${notification_email}
-
-echo "`date` $message $durationMsg"
-
 }
 
 function notify_pushover()
@@ -51,6 +48,7 @@ function notify_pushover()
   title="$msgType: $user from $endpoint"
   message="on `hostname -s` $durationMsg on `date`"
   curl -s \
+       -o /dev/null \
        --form-string "token=${pushover_token}" \
        --form-string "user=${pushover_user}" \
        --form-string "title=${title}" \
