@@ -108,7 +108,7 @@ do
                     continue
                 fi
 
-                duration=$((hour_seconds + minute_seconds + second_seconds))
+                duration=$((day_seconds + hour_seconds + minute_seconds + second_seconds))
                 user=`grep -B 1 ${peer} /etc/wireguard/wg0.conf | head -1 | sed -e 's/#\s*//'`
                 #echo "User: $user , Duration: $duration, Peer: $peer, IP: $endpoint, Threshold: $threshold"
                 if [ $duration -le $threshold ];then
